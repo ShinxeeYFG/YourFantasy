@@ -1,5 +1,3 @@
-# Technical Support Guides
-
 This folder contains troubleshooting guides for common development, server, networking, and backend issues.
 
 ## Available Guides
