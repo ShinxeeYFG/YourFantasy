@@ -1,146 +1,402 @@
+# Docker
+
+## Purpose
+
 This document aims to answer the following questions:
-1. What is this?
-2. Why are we installing it?
+
+1. What is Docker?
+2. Why are we using Docker?
 3. What alternatives exist?
-4. How do we verify it installed correctly?
+4. How do we install and verify Docker?
 
-1. What is Docker:
-    - To understand Docker you must understand what a Container is:
-        - A container is an isolated environment that packages an application together with everything it needs to run.
-        - It provides an isolated environment that behaves like its own machine from the application's perspective, while actually sharing the host operating system.
-        - Lightweight, isolated software packages that hold the application and it's dependencies. They share the host machine's OS kernel rather than having their own OS.
-    - Docker allows applications to be packaged into isolated, reproducible environments that are easy to deploy, update and scale.
-        - Dockers build, download, runs, networks, stores images, and manages volumes
-    - Ex with no Docker: 
-        - Ubuntu
-            - MySQL
-            - PostgreSQL
-            - Python
-            - etc..
+---
 
-        PostgreSQL gets updated and breaks because it's expecting the older version.
+# 1. What is Docker?
 
-    - Ex. with Docker:
-       Your Fantasy architecture example:
-            Azure VM
-            │
-            ├── Docker
-            │
-            ├── PostgreSQL Container
-            │      Stores:
-            │      Accounts
-            │      Characters
-            │      Inventory
-            │
-            ├── Login API Container
-            │      Handles:
-            │      Login
-            │      Registration
-            │      Authentication
-            │
-            ├── Redis Container (later)
-            │      Stores:
-            │      Sessions
-            │      Cache
-            │
-            └── Unreal Dedicated Server
-        Everything is isolated and runs with their own dependencies.
-    Docker Container vs Image:
-        - Image: A blueprint or template for an application
-            - Contains the application, its dependencies, and instructions on how to run it
-            - Stored locally or in a registry like Docker Hub
-            - One Image can create many Containers
-        - Container: A running (or stopped) instance created from a docker image.
-            - Has its own isolated filesystem, processes and network.
-            - Multiple contianers can be created from the same image.
-            
-2. Use Case
+Before understanding Docker, you must first understand what a **Container** is.
 
-    Docker is commonly used to package and deploy services independently. For Your Fantasy Game Docker will be used to run services such as
-    - PostgreSQL Database
-    - Login API
-    - Redis Cache
-    - Monitoring Tools
-    - Admin dashboard
-    - Other backend microservices.
+## What is a Container?
 
-    Note: The UE dedicated server will initially run  directly on vm for simplicity, but later may be containerized if scaling requirements change.
+A container is an isolated environment that packages an application together with everything it needs to run.
 
-    Benefits of isolation: Updating services do not affect eachother and can be manage more controllably. (Easier debugging, deployments, services can be restarted individually, etc)
+Unlike a Virtual Machine, a container **does not have its own operating system**. Instead, it shares the host operating system's kernel while maintaining its own isolated filesystem, processes, and networking.
 
+### Container Characteristics
 
-3. Alternatives to Docker:
-    - Alternatives include: Containerd, Podman
+- Lightweight
+- Portable
+- Isolated
+- Contains an application and its dependencies
+- Shares the host OS kernel
 
-4. Installation and verification:
+---
 
-    Download Docker installation script:
+## What is Docker?
 
-    Command: curl -fsSL https://get.docker.com -o get-docker.sh
-        - Curl : Downloads something from the internet
-        - -f : fail silently if something goes wrong. Instead of downloading an HTML Error page, it exits
-        - -s : Silent mode (no progress bar)
-        - -S : If there is an error, show it
-        - -L : If Docker redirects us to another URL, follow it
-        - -o get-docker.sh : Saves it at "get-docker.sh"
-        - Verification: head get-docker.sh
-            -This checks the first 10 lines of the installer script to verify it's contents.
-    This command downloads the docker installation script and saves it.
+Docker is a container platform used to:
 
-    Run installation script:
+- Build containers
+- Download images
+- Run containers
+- Network containers together
+- Store images
+- Manage storage volumes
 
-    Command: There are two ways to do it. You can run it as a shell or turn it into an executable and run it that way.
-        - Run it as SH: sudo sh get-docker.sh
-            - sudo = run as admin (Super User Do)
-            - sh = execute this file using the shell
-        - Make it executable first: chmod +x get-docker.sh 
-            - chmod +x = gives the file execute permission
-        - After giving the script executre permissions, it cane be ran directly via: sudo ./get-docker.sh
-            - ./ = run the file in the current directory
+Docker allows applications to be packaged into isolated, reproducible environments that are easy to deploy, update, and scale.
 
-        Entire Script:
+---
 
-        curl -fsSL https://get.docker.com -o get-docker.sh
+## Without Docker
 
-        head get-docker.sh
+Example Ubuntu Server
 
-        chmod +x get-docker.sh
+```
+Ubuntu
+├── MySQL
+├── PostgreSQL
+├── Python
+├── NodeJS
+└── Various dependencies
+```
 
-        sudo ./get-docker.sh
-    
-    Verification:
+Imagine PostgreSQL is upgraded.
 
-        Check Version:
-        Command: docker --version
-            - Output: Docker's current version and tells us the Docker CLI is installed.
+Another application was expecting the previous version.
 
-        Check if Docker Compose is installed:
-        Command: docker compose version
-            - Output: Docker Commposer version
+Now the application breaks because multiple services are sharing the same environment.
 
-        Check if Docker Service is Running:
-            - Docker is two things
-                - CLI
-                - Daemon (The background service that creates containers)
-                    - User > Docker Command > Docker Daemon > Docker Container
-        Command: sudo systemctl status docker
-            - Output: Returns status update of Docker Service. Press Q to exit afterwards.
+---
 
-        Check if Docker can create Containers:
-        Command: sudo docker run hello-world
-            - The following happens after running this command:
-                1. Docker looks for hello-world image locally
-                2. It doesn't find it
-                3. It downloads it from the Docker Hub
-                4. Creates Container
-                5. The Container prints a success message
-                6. The Container exits.
-            - Output: Lists the images in Docker
+## With Docker
 
-        Check for changes:
-        Command: docker images
-            - Asks Docker what images it has downloaded
-            - Output: Shows Repository, Tag and Image ID
-        Command: docker ps -a
-            - Lists containers
-            - Output: Lists out containers and it's property data
+Example architecture for **Your Fantasy**
+
+```
+Azure VM
+│
+├── Docker
+│
+├── PostgreSQL Container
+│   ├── Accounts
+│   ├── Characters
+│   └── Inventory
+│
+├── Login API Container
+│   ├── Login
+│   ├── Registration
+│   └── Authentication
+│
+├── Redis Container (Future)
+│   ├── Sessions
+│   └── Cache
+│
+└── Unreal Dedicated Server
+```
+
+Each service is isolated and maintains its own dependencies.
+
+Updating one service does not directly affect another.
+
+---
+
+## Docker Image vs Docker Container
+
+### Docker Image
+
+A Docker Image is a blueprint or template for an application.
+
+An image contains:
+
+- Application
+- Dependencies
+- Configuration
+- Instructions on how to start
+
+Images are stored:
+
+- Locally
+- Docker Hub
+- Private Container Registries
+
+One Docker Image can create many Docker Containers.
+
+---
+
+### Docker Container
+
+A Docker Container is a running (or stopped) instance created from a Docker Image.
+
+Each container has its own:
+
+- Filesystem
+- Processes
+- Network
+- Environment Variables
+
+Multiple containers can be created from the same image.
+
+---
+
+# 2. Use Case
+
+Docker is used to package and deploy backend services independently.
+
+For **Your Fantasy**, Docker will eventually host:
+
+- PostgreSQL Database
+- Login API
+- Redis Cache
+- Monitoring Tools
+- Admin Dashboard
+- Other backend microservices
+
+### Note
+
+The Unreal Engine Dedicated Server will initially run directly on the Azure VM for simplicity.
+
+It may later be containerized if scaling requirements change.
+
+---
+
+## Benefits of Isolation
+
+Separating services into containers provides several advantages:
+
+- Updating the Login API does not affect PostgreSQL
+- Updating PostgreSQL does not affect Redis
+- Services can be restarted independently
+- Easier debugging
+- Easier deployments
+- Dependency conflicts are minimized
+- Services can be scaled independently
+
+---
+
+# 3. Alternatives
+
+Docker is the most popular container platform, but alternatives include:
+
+- Podman
+- containerd
+- CRI-O
+- LXC/LXD
+
+Docker was selected for **Your Fantasy** because of:
+
+- Large community support
+- Excellent documentation
+- Docker Compose
+- Industry adoption
+- Ease of learning
+
+---
+
+# 4. Installation & Verification
+
+## Step 1 - Download the Installation Script
+
+```bash
+curl -fsSL https://get.docker.com -o get-docker.sh
+```
+
+### Command Breakdown
+
+| Option | Description |
+|---------|-------------|
+| curl | Downloads a file from the internet |
+| -f | Fails silently if an error occurs |
+| -s | Silent mode (no progress bar) |
+| -S | Displays errors if they occur |
+| -L | Follows redirects automatically |
+| -o get-docker.sh | Saves the downloaded file locally |
+
+---
+
+### Verify the Download
+
+```bash
+head get-docker.sh
+```
+
+Displays the first few lines of the installer to verify that the script downloaded correctly.
+
+---
+
+## Step 2 - Execute the Installer
+
+Docker can be installed in two ways.
+
+### Option A
+
+Execute the script using the shell.
+
+```bash
+sudo sh get-docker.sh
+```
+
+Explanation
+
+- sudo → Execute as administrator
+- sh → Execute using the shell
+
+---
+
+### Option B (Recommended)
+
+Give the script execute permissions.
+
+```bash
+chmod +x get-docker.sh
+```
+
+Then execute it directly.
+
+```bash
+sudo ./get-docker.sh
+```
+
+Explanation
+
+- chmod +x → Adds execute permission
+- ./ → Execute the file in the current directory
+
+---
+
+## Complete Installation
+
+```bash
+curl -fsSL https://get.docker.com -o get-docker.sh
+
+head get-docker.sh
+
+chmod +x get-docker.sh
+
+sudo ./get-docker.sh
+```
+
+---
+
+# Verification
+
+## Verify Docker CLI
+
+```bash
+docker --version
+```
+
+Expected Output
+
+```
+Docker version XX.XX.X
+```
+
+Confirms the Docker CLI is installed.
+
+---
+
+## Verify Docker Compose
+
+```bash
+docker compose version
+```
+
+Expected Output
+
+```
+Docker Compose version v2.xx.x
+```
+
+Confirms Docker Compose is installed.
+
+---
+
+## Verify Docker Service
+
+Docker consists of two primary components:
+
+- Docker CLI
+- Docker Daemon
+
+```
+User
+   │
+Docker Command
+   │
+Docker Daemon
+   │
+Containers
+```
+
+Check the daemon status.
+
+```bash
+sudo systemctl status docker
+```
+
+Expected Output
+
+```
+Active: active (running)
+```
+
+Press **Q** to exit.
+
+---
+
+## Verify Container Creation
+
+```bash
+sudo docker run hello-world
+```
+
+Docker performs the following steps:
+
+1. Searches for the image locally.
+2. Image is not found.
+3. Downloads the image from Docker Hub.
+4. Creates a container.
+5. Executes the application.
+6. Prints the success message.
+7. Stops the container.
+
+---
+
+## View Installed Images
+
+```bash
+docker images
+```
+
+Displays:
+
+- Repository
+- Tag
+- Image ID
+
+---
+
+## View Containers
+
+```bash
+docker ps -a
+```
+
+Displays all containers, including stopped containers.
+
+---
+
+# Summary
+
+Docker provides a standardized way to package, deploy, and manage backend services.
+
+For **Your Fantasy**, Docker will serve as the foundation for hosting backend infrastructure including:
+
+- PostgreSQL
+- Login API
+- Redis
+- Monitoring
+- Additional microservices
+
+The Unreal Dedicated Server will initially remain outside Docker but may later be containerized as the project grows.
+
+Docker was selected because it offers portability, isolation, scalability, and a workflow that closely aligns with modern DevOps practices.
